@@ -22,13 +22,16 @@ EOF
     exit 1;
 }
 
-while getopts "o:p:xn" o; do
+while getopts "o:p:i:xn" o; do
     case "${o}" in
 	x|d)
 	    set -x
 	    ;;
 	o)
 	    IMG=${OPTARG}
+	    ;;
+	i)
+	    INC="${INC} ${OPTARG}"
 	    ;;
 	p)
 	    PARTITIONS=${OPTARG}
@@ -98,6 +101,13 @@ sleep 2
 # partitions
 while IFS=, read name size type file; do
     if [ -z "$file" ] ; then continue; fi
+    # default to look for file in current folder
+    for i in ${INC}; do
+        if [ -e "$i/$file" ]; then
+            file="$i/$file"
+            break
+        fi
+    done
     # tries to match the output of sgdisk with "Number/start/end sectors"
     COUNTER=$(sgdisk -p $IMG |grep -E "^(\s+[0-9]+){3}.*\b$name\b"|
                      sed 's/^[ \t]*//'|cut -d ' ' -f1 )
