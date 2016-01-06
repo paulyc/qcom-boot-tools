@@ -24,21 +24,21 @@ EOF
 
 while getopts "o:p:i:xn" o; do
     case "${o}" in
-	x|d)
-	    set -x
-	    ;;
-	o)
-	    IMG=${OPTARG}
-	    ;;
-	i)
-	    INC="${INC} ${OPTARG}"
-	    ;;
-	p)
-	    PARTITIONS=${OPTARG}
-	    ;;
-	*)
-	    usage
-	    ;;
+    x|d)
+        set -x
+        ;;
+    o)
+        IMG=${OPTARG}
+        ;;
+    i)
+        INC="${INC} ${OPTARG}"
+        ;;
+    p)
+        PARTITIONS=${OPTARG}
+        ;;
+    *)
+        usage
+        ;;
     esac
 done
 shift $((OPTIND-1))
@@ -81,13 +81,13 @@ while IFS=, read name size type file; do
            [ -z "$type" ]; then continue; fi
     echo "=== Create partition: name: $name, size: $size, type: $type"
     sgdisk -a 1 -n 0:0:+$(($size*2)) $IMG
-	PNUM="$(sgdisk -p $IMG |tail -1|sed 's/^[ \t]*//'|cut -d ' ' -f1)"
-	sgdisk -c $PNUM:$name $IMG
-	sgdisk -t $PNUM:$type $IMG
+    PNUM="$(sgdisk -p $IMG |tail -1|sed 's/^[ \t]*//'|cut -d ' ' -f1)"
+    sgdisk -c $PNUM:$name $IMG
+    sgdisk -t $PNUM:$type $IMG
 done < $PARTITIONS
 
 DEV="$(kpartx -av $IMG | tail -1 | \
-	sed 's/^.*\/dev\///;s/ .*$//')"
+    sed 's/^.*\/dev\///;s/ .*$//')"
 if [ -e "/dev/$DEV" ] ; then
     echo "loop created: /dev/$DEV"
 else
