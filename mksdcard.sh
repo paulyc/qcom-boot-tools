@@ -76,7 +76,7 @@ fi
 SIZE_MAX=16384
 SIZE=0
 while IFS=, read name size type file; do
-    if [ -z "$name" ] || [ -z "$size" ] ||
+    if [[ "$name" =~ ^#.* ]] || [ -z "$name" ] || [ -z "$size" ] ||
            [ -z "$type" ]; then continue; fi
     echo "=== Entry: name: $name, size: $size, type: $type, file: $file"
     SIZE=$(($SIZE + $size))
@@ -94,7 +94,7 @@ dd if=/dev/zero of=$IMG bs=1024 count=1 seek=$SIZE_MAX
 
 # create partition table
 while IFS=, read name size type file; do
-    if [ -z "$name" ] || [ -z "$size" ] ||
+    if [[ "$name" =~ ^#.* ]] || [ -z "$name" ] || [ -z "$size" ] ||
            [ -z "$type" ]; then continue; fi
     echo "=== Create partition: name: $name, size: $size, type: $type"
     sgdisk -a 1 -n 0:0:+$(($size*2)) $IMG
@@ -117,7 +117,7 @@ sleep 2
 # push the blobs to their respective
 # partitions
 while IFS=, read name size type file; do
-    if [ -z "$file" ] ; then continue; fi
+    if [[ "$name" =~ ^#.* ]] || [ -z "$file" ] ; then continue; fi
     # default to look for file in current folder
     for i in ${INC}; do
         if [ -e "$i/$file" ]; then
