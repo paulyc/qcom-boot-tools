@@ -44,8 +44,17 @@ while getopts "o:p:i:xn" o; do
 done
 shift $((OPTIND-1))
 
+if [ -z "$PARTITIONS" ]; then
+    echo "Please specify a partition description file"
+    echo ""
+    usage
+    exit 1
+fi
+
 if [ ! -e "$PARTITIONS" ]; then
     echo "Cannot find partition description file: $PARTITIONS"
+    echo ""
+    usage
     exit 1
 fi
 
