@@ -103,8 +103,19 @@ fi
 echo "=== Create file with size: $SIZE"
 
 [ "$PRINTONLY" == "1" ] && exit
-rm -f $IMG
-dd if=/dev/zero of=$IMG bs=1024 count=1 seek=$SIZE
+
+# the output can be:
+#  * a file in which case we need to create an image
+#  * a block device in which case we directly work on the physical device
+#    and it's safer to zap all GPT data first
+if [ -b "$IMG" ]; then
+    echo "=== Destroy GPT data on block device: $IMG"
+    sgdisk -Z $IMG
+else
+    echo "=== Create image file: $IMG"
+    rm -f $IMG
+    dd if=/dev/zero of=$IMG bs=1024 count=1 seek=$SIZE
+fi
 
 # create partition table
 while IFS=, read name size type file; do
@@ -117,16 +128,22 @@ while IFS=, read name size type file; do
     sgdisk -t $PNUM:$type $IMG
 done < $PARTITIONS
 
-DEV="$(kpartx -av $IMG | tail -1 | \
+# when dealing with image , we use kpartx to loop mount the right partition
+# otherwise with block device we directly work on it
+DEV=$IMG
+if [ ! -b "$IMG" ]; then
+    DEV="$(kpartx -av $IMG | tail -1 | \
     sed 's/^.*\/dev\///;s/ .*$//')"
-if [ -e "/dev/$DEV" ] ; then
-    echo "loop created: /dev/$DEV"
-else
-    echo "Cannot create loop: /dev/$DEV"
-    exit 1
+    if [ -e "/dev/$DEV" ] ; then
+        echo "loop created: /dev/$DEV"
+        DEV=/dev/mapper/${DEV}
+    else
+        echo "Cannot create loop: /dev/$DEV"
+        kpartx -d $IMG
+        exit 1
+    fi
+    sleep 2
 fi
-
-sleep 2
 
 # push the blobs to their respective
 # partitions
@@ -140,11 +157,14 @@ while IFS=, read name size type file; do
         fi
     done
     # tries to match the output of sgdisk with "Number/start/end sectors"
-    COUNTER=$(sgdisk -p $IMG |grep -E "^(\s+[0-9]+){3}.*\b$name\b"|
-                     sed 's/^[ \t]*//'|cut -d ' ' -f1 )
-    DPATH=/dev/mapper/${DEV}p${COUNTER}
+    id=$(sgdisk -p $IMG |grep -E "^(\s+[0-9]+){3}.*\b$name\b"|
+                sed 's/^[ \t]*//'|cut -d ' ' -f1 )
+    DPATH=${DEV}p${id}
     echo "=== Writing $file to $name: ${DPATH} ... "
     dd if=$file of=${DPATH}
 done < $PARTITIONS
 
-kpartx -d $IMG
+# cleanup in case we used kpartx
+if [ ! -b "$IMG" ]; then
+    kpartx -d $IMG
+fi
