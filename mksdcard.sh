@@ -25,7 +25,7 @@ EOF
 }
 
 PRINTONLY=0
-while getopts "o:p:i:xn" o; do
+while getopts "o:p:i:s:xn" o; do
     case "${o}" in
     x|d)
         set -x
@@ -35,6 +35,9 @@ while getopts "o:p:i:xn" o; do
         ;;
     o)
         IMG=${OPTARG}
+        ;;
+    s)
+        SIZE_IMG=${OPTARG}
         ;;
     i)
         INC="${INC} ${OPTARG}"
@@ -73,8 +76,9 @@ fi
 # let's compute the size of the SD card, by looking
 # at all partitions, but let's make sure the SD card
 # is at least 16MB 
-SIZE_MAX=16384
-SIZE=0
+SIZE_MIN=16384
+# padding
+SIZE=1024
 while IFS=, read name size type file; do
     if [[ "$name" =~ ^#.* ]] || [ -z "$name" ] || [ -z "$size" ] ||
            [ -z "$type" ]; then continue; fi
@@ -82,15 +86,25 @@ while IFS=, read name size type file; do
     SIZE=$(($SIZE + $size))
 done < $PARTITIONS
 
-if [ $SIZE -gt $SIZE_MAX ]; then
-    SIZE_MAX=$(($SIZE + 1024))
+if [ $SIZE -lt $SIZE_MIN ]; then
+    SIZE=$SIZE_MIN
 fi
 
-[ "$PRINTONLY" == "1" ] && exit
+if [ -n "$SIZE_IMG" ] ; then
+    if [ $SIZE -lt $SIZE_IMG ]; then
+        SIZE=$SIZE_IMG
+    elif [ $SIZE -gt $SIZE_IMG ]; then
+        echo "Error: cannot create partition table using $PARTITIONS"
+        echo "Expected size is $SIZE, however image size is set to $SIZE_IMG"
+        exit
+    fi
+fi
 
-echo "=== Create file with size: $SIZE_MAX"
+echo "=== Create file with size: $SIZE"
+
+[ "$PRINTONLY" == "1" ] && exit
 rm -f $IMG
-dd if=/dev/zero of=$IMG bs=1024 count=1 seek=$SIZE_MAX
+dd if=/dev/zero of=$IMG bs=1024 count=1 seek=$SIZE
 
 # create partition table
 while IFS=, read name size type file; do
