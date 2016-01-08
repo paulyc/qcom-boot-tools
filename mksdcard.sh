@@ -16,6 +16,7 @@ Utility to create SD card
  -d         enable debug traces
  -o <file>  output file (will be destroyed if exists)
  -p <file>  partition description file
+ -i <path>  additional include paths to use when looking for files
  -x         enable shell debug mode
  -h         display help
 EOF
