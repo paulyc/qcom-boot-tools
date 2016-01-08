@@ -17,16 +17,21 @@ Utility to create SD card
  -o <file>  output file (will be destroyed if exists)
  -p <file>  partition description file
  -i <path>  additional include paths to use when looking for files
+ -n         print partition scheme and exit, before creating image file
  -x         enable shell debug mode
  -h         display help
 EOF
     exit 1;
 }
 
+PRINTONLY=0
 while getopts "o:p:i:xn" o; do
     case "${o}" in
     x|d)
         set -x
+        ;;
+    n)
+        PRINTONLY=1
         ;;
     o)
         IMG=${OPTARG}
@@ -58,7 +63,7 @@ if [ ! -e "$PARTITIONS" ]; then
     exit 1
 fi
 
-if [ -z "$IMG" ]; then
+if [ -z "$IMG" ] && [ "$PRINTONLY" == "0" ] ; then
     echo "Please specify an output file"
     echo ""
     usage
@@ -80,6 +85,8 @@ done < $PARTITIONS
 if [ $SIZE -gt $SIZE_MAX ]; then
     SIZE_MAX=$(($SIZE + 1024))
 fi
+
+[ "$PRINTONLY" == "1" ] && exit
 
 echo "=== Create file with size: $SIZE_MAX"
 rm -f $IMG
