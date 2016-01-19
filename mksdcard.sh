@@ -17,6 +17,7 @@ Utility to create SD card
  -o <file>  output file (will be destroyed if exists)
  -p <file>  partition description file
  -i <path>  additional include paths to use when looking for files
+ -s <size>  set output image size
  -n         print partition scheme and exit, before creating image file
  -x         enable shell debug mode
  -h         display help
