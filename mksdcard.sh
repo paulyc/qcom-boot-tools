@@ -73,18 +73,22 @@ if [ -z "$IMG" ] && [ "$PRINTONLY" = "0" ] ; then
     exit 1
 fi
 
+# remove comments
+partitions=`mktemp`
+grep -v '^[[:space:]]*#' $PARTITIONS > $partitions
+
 # let's compute the size of the SD card, by looking
 # at all partitions, but let's make sure the SD card
 # is at least 16MB 
 SIZE_MIN=16384
 # padding
 SIZE=1024
-grep -v '^[[:space:]]*#' $PARTITIONS | while IFS=, read name size type file; do
+while IFS=, read name size type file; do
     if [ -z "$name" ] || [ -z "$size" ] ||
            [ -z "$type" ]; then continue; fi
     echo "=== Entry: name: $name, size: $size, type: $type, file: $file"
     SIZE=$(($SIZE + $size))
-done
+done < $partitions
 
 if [ $SIZE -lt $SIZE_MIN ]; then
     SIZE=$SIZE_MIN
@@ -118,7 +122,7 @@ else
 fi
 
 # create partition table
-grep -v '^[[:space:]]*#' $PARTITIONS | while IFS=, read name size type file; do
+while IFS=, read name size type file; do
     if [ -z "$name" ] || [ -z "$size" ] ||
            [ -z "$type" ]; then continue; fi
     echo "=== Create partition: name: $name, size: $size, type: $type"
@@ -126,7 +130,7 @@ grep -v '^[[:space:]]*#' $PARTITIONS | while IFS=, read name size type file; do
     PNUM="$(sgdisk -p $IMG |tail -1|sed 's/^[ \t]*//'|cut -d ' ' -f1)"
     sgdisk -c $PNUM:$name $IMG
     sgdisk -t $PNUM:$type $IMG
-done
+done < $partitions
 
 # when dealing with image , we use kpartx to loop mount the right partition
 # otherwise with block device we directly work on it
@@ -147,7 +151,7 @@ fi
 
 # push the blobs to their respective
 # partitions
-grep -v '^[[:space:]]*#' $PARTITIONS | while IFS=, read name size type file; do
+while IFS=, read name size type file; do
     if [ -z "$file" ] ; then continue; fi
     # default to look for file in current folder
     for i in ${INC}; do
@@ -162,9 +166,11 @@ grep -v '^[[:space:]]*#' $PARTITIONS | while IFS=, read name size type file; do
     DPATH=${DEV}p${id}
     echo "=== Writing $file to $name: ${DPATH} ... "
     dd if=$file of=${DPATH}
-done
+done < $partitions
 
 # cleanup in case we used kpartx
 if [ ! -b "$IMG" ]; then
     kpartx -d $IMG
 fi
+
+rm -f $partitions
