@@ -85,8 +85,7 @@ SIZE_MIN=16384
 # padding
 SIZE=1024
 while IFS=, read name size type file; do
-    if [ -z "$name" ] || [ -z "$size" ] ||
-           [ -z "$type" ]; then continue; fi
+    if [ -z "$name" ] || [ -z "$size" ] ; then continue; fi
     echo "=== Entry: name: $name, size: $size, type: $type, file: $file"
     SIZE=$(($SIZE + $size))
 done < $partitions
@@ -124,13 +123,14 @@ fi
 
 # create partition table
 while IFS=, read name size type file; do
-    if [ -z "$name" ] || [ -z "$size" ] ||
-           [ -z "$type" ]; then continue; fi
+    if [ -z "$name" ] || [ -z "$size" ]; then continue; fi
     echo "=== Create partition: name: $name, size: $size, type: $type"
     sgdisk -a 1 -n 0:0:+$(($size*2)) $IMG
     PNUM="$(sgdisk -p $IMG |tail -1|sed 's/^[ \t]*//'|cut -d ' ' -f1)"
     sgdisk -c $PNUM:$name $IMG
-    sgdisk -t $PNUM:$type $IMG
+    if [ -n "$type" ]; then
+        sgdisk -t $PNUM:$type $IMG
+    fi
 done < $partitions
 
 # when dealing with image , we use kpartx to loop mount the right partition
