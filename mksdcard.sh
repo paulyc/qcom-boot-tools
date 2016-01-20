@@ -164,7 +164,12 @@ while IFS=, read name size type file; do
     # tries to match the output of sgdisk with "Number/start/end sectors"
     id=$(sgdisk -p $IMG |grep -E "^(\s+[0-9]+){3}.*\b$name\b"|
                 sed 's/^[ \t]*//'|cut -d ' ' -f1 )
-    DPATH=${DEV}p${id}
+
+    case "$DEV" in
+        /dev/mmcblk*) DPATH=${DEV}p${id};;
+        *)            DPATH=${DEV}${id};;
+    esac
+
     echo "=== Writing $file to $name: ${DPATH} ... "
     dd if=$file of=${DPATH}
 done < $partitions
