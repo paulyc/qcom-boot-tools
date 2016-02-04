@@ -1,0 +1,60 @@
+#!/bin/sh
+set -e
+
+usage() {
+    cat <<EOF
+Usage: `basename $0` [OPTIONS]
+
+Create partition file to be used to flash GPT on DragonBoard
+
+ -d         enable debug traces
+ -o <file>  output file (will be destroyed if exists)
+ -i <file>  GPT backup file
+ -x         enable shell debug mode
+ -h         display help
+EOF
+    exit 1;
+}
+
+while getopts "o:i:s:dx" o; do
+    case "${o}" in
+    x|d)
+        set -x
+        ;;
+    o)
+        OUT=${OPTARG}
+        ;;
+    i)
+        IN=${OPTARG}
+        ;;
+    *)
+        usage
+        ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "$OUT" ] || [ -z "$IN" ] ; then
+    echo "Please specify an output and input file"
+    echo ""
+    usage
+    exit 1
+fi
+
+# The GPT backup is a binary file consisting of the protective MBR,
+# the main GPT header, the backup GPT header, and one copy of the
+# partition table, in that order.
+MBR=`mktemp`
+PRIMARY=`mktemp`
+SECONDARY=`mktemp`
+DATA=`mktemp`
+
+echo "=== Extract MBR, Primary and Secondary headers, and partition table"
+dd if=$IN of=$MBR bs=512 count=1 &> /dev/null
+dd if=$IN of=$PRIMARY bs=512 count=1 skip=1 &> /dev/null
+dd if=$IN of=$SECONDARY bs=512 count=1 skip=2 &> /dev/null
+dd if=$IN of=$DATA bs=512 count=32 skip=3 &> /dev/null
+echo "=== Create $OUT file"
+cat $MBR $PRIMARY $DATA $DATA $SECONDARY > $OUT
+rm -f $MBR $PRIMARY $DATA $SECONDARY
+echo "=== Done"
