@@ -24,6 +24,7 @@ Utility to create SD card
  -p <file>  partition description file
  -i <path>  additional include paths to use when looking for files
  -s <size>  set output image size
+ -g         create partitions but do not write files
  -n         print partition scheme and exit, before creating image file
  -x         enable shell debug mode
  -h         display help
@@ -32,13 +33,17 @@ EOF
 }
 
 PRINTONLY=0
-while getopts "o:p:i:s:xn" o; do
+PARTONLY=0
+while getopts "o:p:i:s:xng" o; do
     case "${o}" in
     x|d)
         set -x
         ;;
     n)
         PRINTONLY=1
+        ;;
+    g)
+        PARTONLY=1
         ;;
     o)
         IMG=${OPTARG}
@@ -138,6 +143,8 @@ while IFS=, read name size type file; do
         sgdisk -t $PNUM:$type $IMG
     fi
 done < $partitions
+
+[ "$PARTONLY" = "1" ] && exit
 
 # when dealing with image , we use kpartx to loop mount the right partition
 # otherwise with block device we directly work on it
