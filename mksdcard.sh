@@ -7,6 +7,12 @@ if [ "$(whoami)" != "root" ]; then
     exit 1
 fi
 
+trap cleanup_exit INT TERM EXIT
+
+cleanup_exit() {
+    [ -n "$partitions" ] && rm -f $partitions
+}
+
 usage() {
     cat <<EOF 
 Usage: `basename $0` [OPTIONS]
@@ -179,4 +185,3 @@ if [ ! -b "$IMG" ]; then
     kpartx -d $IMG
 fi
 
-rm -f $partitions
