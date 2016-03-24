@@ -1,0 +1,14 @@
+#!/bin/sh
+
+fastboot flash partition gpt_both0.bin
+fastboot flash hyp hyp.mbn
+fastboot flash modem NON-HLOS.bin
+fastboot flash rpm rpm.mbn
+fastboot flash sbl1 sbl1.mbn
+fastboot flash sec sec.dat
+fastboot flash tz tz.mbn
+fastboot flash aboot emmc_appsboot.mbn
+
+fastboot erase boot
+fastboot erase rootfs
+fastboot erase devinfo
