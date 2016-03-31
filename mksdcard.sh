@@ -179,6 +179,7 @@ while IFS=, read name size type file; do
                 sed 's/^[ \t]*//'|cut -d ' ' -f1 )
 
     case "$DEV" in
+        /dev/mapper/loop*) DPATH=${DEV}p${id};;
         /dev/mmcblk*) DPATH=${DEV}p${id};;
         *)            DPATH=${DEV}${id};;
     esac
