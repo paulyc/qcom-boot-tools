@@ -87,6 +87,7 @@ fi
 
 # remove comments
 partitions=`mktemp`
+gpt=`mktemp`
 grep -v '^[[:space:]]*#' $PARTITIONS > $partitions
 
 # let's compute the size of the SD card, by looking
@@ -95,12 +96,37 @@ grep -v '^[[:space:]]*#' $PARTITIONS > $partitions
 SIZE_MIN=16384
 # padding
 SIZE=1024
-while IFS=, read name size type file; do
-    if [ -z "$name" ] || [ -z "$size" ] ; then continue; fi
-    echo "=== Entry: name: $name, size: $size, type: $type, file: $file"
-    SIZE=$(($SIZE + $size))
+sector=0
+part=1
+while IFS=, read name size align type file; do
+    if [ -z "$size" ] ; then continue; fi
+    echo "=== Entry: name: $name, size: $size, align: $align, type: $type, file: $file"
+
+    # align partition start
+    if [ -n "$align" ]; then
+        align=$(( $align * 2))
+        sector=$(( (($sector+$align-1) / $align) * $align ))
+    fi
+    start=$sector
+    sector=$(($sector + $size*2))
+
+    if [ -z "$name" ] ; then continue; fi
+
+    # make sure we don't overlap with GPT primary header
+    if [ $start -lt 34 ]; then
+        start=34
+        sector=$(($sector+$start))
+    fi
+
+    echo "$part,$start,$(($sector-1)),$name,$size,$align,$type,$file" >> $gpt
+    part=$(($part+1))
+
+    # size=0 is valid for the last partition only (grow)
+    if [ "$size" = 0 ]; then break; fi
+
 done < $partitions
 
+SIZE=$(($sector/2 + $SIZE))
 if [ $SIZE -lt $SIZE_MIN ]; then
     SIZE=$SIZE_MIN
 fi
@@ -117,7 +143,10 @@ fi
 
 echo "=== Create file with size: $SIZE"
 
-[ "$PRINTONLY" = "1" ] && exit
+if [ "$PRINTONLY" = "1" ] ;then
+    cat $gpt
+    exit
+fi
 
 # the output can be:
 #  * a file in which case we need to create an image
@@ -133,16 +162,17 @@ else
 fi
 
 # create partition table
-while IFS=, read name size type file; do
-    if [ -z "$name" ] || [ -z "$size" ]; then continue; fi
-    echo "=== Create partition: name: $name, size: $size, type: $type"
-    sgdisk -a 1 -n 0:0:+$(($size*2)) $IMG
-    PNUM="$(sgdisk -p $IMG |tail -1|sed 's/^[ \t]*//'|cut -d ' ' -f1)"
-    sgdisk -c $PNUM:$name $IMG
+while IFS=, read part start end name size align type file; do
+    echo "=== Create part: name:$name, size:$size, type:$type align:$align"
+    # grow last partition until end of disk
+    # but do no overlap with GPT secondary header
+    if [ "$size" = 0 ]; then end=$(($SIZE*2-32)); fi
+    sgdisk -a 1 -n $part:$start:$end $IMG
+    sgdisk -c $part:$name $IMG
     if [ -n "$type" ]; then
-        sgdisk -t $PNUM:$type $IMG
+        sgdisk -t $part:$type $IMG
     fi
-done < $partitions
+done < $gpt
 
 [ "$PARTONLY" = "1" ] && exit
 
@@ -165,7 +195,7 @@ fi
 
 # push the blobs to their respective
 # partitions
-while IFS=, read name size type file; do
+while IFS=, read part start end name size align type file; do
     if [ -z "$file" ] ; then continue; fi
     # default to look for file in current folder
     for i in ${INC}; do
@@ -174,22 +204,21 @@ while IFS=, read name size type file; do
             break
         fi
     done
-    # tries to match the output of sgdisk with "Number/start/end sectors"
-    id=$(sgdisk -p $IMG |grep -E "^(\s+[0-9]+){3}.*\b$name\b"|
-                sed 's/^[ \t]*//'|cut -d ' ' -f1 )
 
     case "$DEV" in
-        /dev/mapper/loop*) DPATH=${DEV}p${id};;
-        /dev/mmcblk*) DPATH=${DEV}p${id};;
-        *)            DPATH=${DEV}${id};;
+        /dev/mapper/loop*) DPATH=${DEV}p${part};;
+        /dev/mmcblk*) DPATH=${DEV}p${part};;
+        *)            DPATH=${DEV}${part};;
     esac
 
     echo "=== Writing $file to $name: ${DPATH} ... "
     dd if=$file of=${DPATH}
-done < $partitions
+done < $gpt
 
 # cleanup in case we used kpartx
 if [ ! -b "$IMG" ]; then
     kpartx -d $IMG
 fi
 
+rm -f $partitions
+rm -f $gpt
