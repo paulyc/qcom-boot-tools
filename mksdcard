@@ -14,7 +14,7 @@ cleanup_exit() {
 }
 
 usage() {
-    cat <<EOF 
+    cat <<EOF
 Usage: `basename $0` [OPTIONS]
 
 Utility to create SD card
@@ -93,7 +93,7 @@ grep -v '^[[:space:]]*#' $PARTITIONS > $partitions
 
 # let's compute the size of the SD card, by looking
 # at all partitions, but let's make sure the SD card
-# is at least 16MB 
+# is at least 16MB
 SIZE_MIN=16384
 # padding
 SIZE=1024
