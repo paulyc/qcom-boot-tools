@@ -34,6 +34,7 @@ EOF
 
 PRINTONLY=0
 PARTONLY=0
+INC="."
 while getopts "o:p:i:s:xng" o; do
     case "${o}" in
     x|d)
@@ -121,9 +122,10 @@ part=1
 # --------------------------
 # | LBA -1   | GPT HEADER  |
 # --------------------------
-while IFS=, read name size align type file; do
+while IFS=, read name size align type format file; do
+    full_path_file=
     if [ -z "$size" ] ; then continue; fi
-    echo "=== Entry: name: $name, size: $size, align: $align, type: $type, file: $file"
+    echo "=== Entry: name: $name, size: $size, align: $align, type: $type, format: $format, file: $file"
 
     # align partition start
     if [ -n "$align" ]; then
@@ -141,7 +143,21 @@ while IFS=, read name size align type file; do
         sector=$(($sector+$start))
     fi
 
-    echo "$part,$start,$(($sector-1)),$name,$size,$align,$type,$file" >> $gpt
+    if [ "$PARTONLY" != "1" ] && [ -n "$file" ] ; then
+        for i in ${INC}; do
+            if [ -e "$i/$file" ]; then
+                full_path_file=`readlink -f $i/$file`
+                break
+            fi
+        done
+
+        if [ -z "$full_path_file" ]; then
+            echo "Unable to find file $file in $INC"
+            exit 1
+        fi
+    fi
+
+    echo "$part,$start,$(($sector-1)),$name,$size,$align,$type,$format,$full_path_file" >> $gpt
     part=$(($part+1))
 
     # size=0 is valid for the last partition only (grow)
@@ -218,15 +234,8 @@ fi
 
 # push the blobs to their respective
 # partitions
-while IFS=, read part start end name size align type file; do
+while IFS=, read part start end name size align type format file; do
     if [ -z "$file" ] ; then continue; fi
-    # default to look for file in current folder
-    for i in ${INC}; do
-        if [ -e "$i/$file" ]; then
-            file="$i/$file"
-            break
-        fi
-    done
 
     case "$DEV" in
         /dev/mapper/loop*) DPATH=${DEV}p${part};;
@@ -235,7 +244,14 @@ while IFS=, read part start end name size align type file; do
     esac
 
     echo "=== Writing $file to $name: ${DPATH} ... "
-    dd if=$file of=${DPATH}
+    case "$format" in
+        fastboot)
+            simg2img $file ${DPATH}
+            ;;
+        *)
+            dd if=$file of=${DPATH}
+            ;;
+    esac
 done < $gpt
 
 # cleanup in case we used kpartx
