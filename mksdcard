@@ -98,6 +98,29 @@ SIZE_MIN=16384
 SIZE=1024
 sector=0
 part=1
+
+# GPT Scheme:
+# --------------------------
+# | LBA 0    | MBR         |
+# --------------------------
+# | LBA 1    | GPT HEADER  |
+# --------------------------
+# | LBA 2    | PART. 1     |
+# | ....     |             |
+# | LBA 33   | PART. 32    |
+# --------------------------
+# | LBA 34   | DATA        |
+# | ....     |             |
+# | ....     |             |
+# | ....     |             |
+# | LBA -34  | LAST DATA   |
+# --------------------------
+# | LBA -33  | PART. 1     |
+# | ....     |             |
+# | LBA -2   | PART. 32    |
+# --------------------------
+# | LBA -1   | GPT HEADER  |
+# --------------------------
 while IFS=, read name size align type file; do
     if [ -z "$size" ] ; then continue; fi
     echo "=== Entry: name: $name, size: $size, align: $align, type: $type, file: $file"
@@ -165,8 +188,8 @@ fi
 while IFS=, read part start end name size align type file; do
     echo "=== Create part: name:$name, size:$size, type:$type align:$align"
     # grow last partition until end of disk
-    # but do no overlap with GPT secondary header
-    if [ "$size" = 0 ]; then end=$(($SIZE*2-32)); fi
+    # but do no overlap with backup GPT
+    if [ "$size" = 0 ]; then end=$(($SIZE*2-34)); fi
     sgdisk -a 1 -n $part:$start:$end $IMG
     sgdisk -c $part:$name $IMG
     if [ -n "$type" ]; then
