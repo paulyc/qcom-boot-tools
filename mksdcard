@@ -32,6 +32,20 @@ EOF
     exit 1;
 }
 
+real_size_in_kb() {
+    local size=$1
+    # handle custom size
+    case $size in
+        *G|*g)
+            size=$((${size::-1}*1024*1024)) ;;
+        *M|*m)
+            size=$((${size::-1}*1024)) ;;
+        *K|*k)
+            size=${size::-1} ;;
+    esac
+    echo $size
+}
+
 PRINTONLY=0
 PARTONLY=0
 INC="."
@@ -50,7 +64,7 @@ while getopts "o:p:i:s:xng" o; do
         IMG=${OPTARG}
         ;;
     s)
-        SIZE_IMG=${OPTARG}
+        SIZE_IMG=$(real_size_in_kb ${OPTARG})
         ;;
     i)
         INC="${INC} ${OPTARG}"
@@ -125,6 +139,7 @@ part=1
 while IFS=, read name size align type format file; do
     full_path_file=
     if [ -z "$size" ] ; then continue; fi
+    size=$(real_size_in_kb $size)
     echo "=== Entry: name: $name, size: $size, align: $align, type: $type, format: $format, file: $file"
 
     # align partition start
