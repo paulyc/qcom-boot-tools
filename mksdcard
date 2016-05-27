@@ -23,7 +23,7 @@ Utility to create SD card
  -o <file>  output file (will be destroyed if exists)
  -p <file>  partition description file
  -i <path>  additional include paths to use when looking for files
- -s <size>  set output image size
+ -s <size>  set output image size (in kb)
  -g         create partitions but do not write files
  -n         print partition scheme and exit, before creating image file
  -x         enable shell debug mode
@@ -195,7 +195,7 @@ if [ -n "$SIZE_IMG" ] ; then
     fi
 fi
 
-echo "=== Create file with size: $SIZE"
+echo "=== Create file with size (kb): $SIZE"
 
 if [ "$PRINTONLY" = "1" ] ;then
     cat $gpt
