@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# This script is called by the grpahical installer, and:
+#  * it is called from the folder which contains the build to flash
+#  * with "-o /dev/<output>"
+
+OUTPUT=$(basename $2)
+SCRIPTPATH=$(dirname $(readlink -f "$0") )
+sudo $SCRIPTPATH/mksdcard -p partitions.txt -i $PWD -o /dev/$OUTPUT -s $((`cat /sys/block/$OUTPUT/size`/2))
