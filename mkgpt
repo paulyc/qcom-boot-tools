@@ -16,10 +16,12 @@ EOF
     exit 1;
 }
 
+DEBUG=0
 while getopts "o:i:s:dx" o; do
     case "${o}" in
     x|d)
         set -x
+        DEBUG=1
         ;;
     o)
         OUT=${OPTARG}
@@ -56,5 +58,10 @@ dd if=$IN of=$SECONDARY bs=512 count=1 skip=2 &> /dev/null
 dd if=$IN of=$DATA bs=512 count=32 skip=3 &> /dev/null
 echo "=== Create $OUT file"
 cat $MBR $PRIMARY $DATA $DATA $SECONDARY > $OUT
+
+if [ "$DEBUG" = "1" ] ;then
+    ls -l $MBR $PRIMARY $DATA $DATA $SECONDARY $OUT
+fi
+
 rm -f $MBR $PRIMARY $DATA $SECONDARY
 echo "=== Done"

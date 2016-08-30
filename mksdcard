@@ -49,11 +49,13 @@ real_size_in_kb() {
 
 PRINTONLY=0
 PARTONLY=0
+DEBUG=0
 INC="."
 while getopts "o:p:i:s:xng" o; do
     case "${o}" in
     x|d)
         set -x
+        DEBUG=1
         ;;
     n)
         PRINTONLY=1
@@ -248,3 +250,7 @@ while IFS=, read part start end name size align type format file; do
     losetup -d ${DPATH}
 
 done < $gpt
+
+if [ "$DEBUG" = "1" ] ;then
+    gdisk -l $IMG
+fi
