@@ -11,6 +11,7 @@ trap cleanup_exit INT TERM EXIT
 
 cleanup_exit() {
     [ -n "$partitions" ] && rm -f $partitions
+    [ -n "$gpt" ] && rm -f $gpt
 }
 
 usage() {
@@ -273,6 +274,3 @@ done < $gpt
 if [ ! -b "$IMG" ]; then
     kpartx -d $IMG
 fi
-
-rm -f $partitions
-rm -f $gpt
