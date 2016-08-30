@@ -216,9 +216,9 @@ else
     dd if=/dev/zero of=$IMG bs=1024 count=1 seek=$(($SIZE-1))
 fi
 
-# create partition table
-while IFS=, read part start end name size align type file; do
-    echo "=== Create part: name:$name, size:$size, type:$type align:$align"
+# create partition table and write files
+while IFS=, read part start end name size align type format file; do
+    echo "=== Create part: name:$name, size:$size, type:$type, align:$align, format:$format, file:$file"
     # grow last partition until end of disk
     # but do no overlap with backup GPT
     if [ "$size" = 0 ]; then end=$(($SIZE*2-34)); fi
@@ -227,38 +227,15 @@ while IFS=, read part start end name size align type file; do
     if [ -n "$type" ]; then
         sgdisk -t $part:$type $IMG
     fi
-done < $gpt
 
-[ "$PARTONLY" = "1" ] && exit
+    # create partition only, do not write file
+    if [ "$PARTONLY" = "1" ] ; then continue; fi
 
-# when dealing with image , we use kpartx to loop mount the right partition
-# otherwise with block device we directly work on it
-DEV=$IMG
-if [ ! -b "$IMG" ]; then
-    DEV="$(kpartx -av $IMG | tail -1 | \
-    sed 's/^.*\/dev\///;s/ .*$//')"
-    if [ -e "/dev/$DEV" ] ; then
-        echo "loop created: /dev/$DEV"
-        DEV=/dev/mapper/${DEV}
-    else
-        echo "Cannot create loop: /dev/$DEV"
-        kpartx -d $IMG
-        exit 1
-    fi
-    sleep 2
-fi
-
-# push the blobs to their respective
-# partitions
-while IFS=, read part start end name size align type format file; do
+    # no file to write
     if [ -z "$file" ] ; then continue; fi
 
-    case "$DEV" in
-        /dev/mapper/loop*) DPATH=${DEV}p${part};;
-        /dev/mmcblk*) DPATH=${DEV}p${part};;
-        *)            DPATH=${DEV}${part};;
-    esac
-
+    # push the blob
+    DPATH=$(losetup --show -f $IMG -o $(($start * 512)) --sizelimit $(( ($end-$start+1) * 512)))
     echo "=== Writing $file to $name: ${DPATH} ... "
     case "$format" in
         fastboot)
@@ -268,9 +245,6 @@ while IFS=, read part start end name size align type format file; do
             dd if=$file of=${DPATH}
             ;;
     esac
-done < $gpt
+    losetup -d ${DPATH}
 
-# cleanup in case we used kpartx
-if [ ! -b "$IMG" ]; then
-    kpartx -d $IMG
-fi
+done < $gpt
