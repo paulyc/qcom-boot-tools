@@ -51,7 +51,7 @@ PRINTONLY=0
 PARTONLY=0
 DEBUG=0
 INC="."
-while getopts "o:p:i:s:xng" o; do
+while getopts "o:p:i:s:dxng" o; do
     case "${o}" in
     x|d)
         set -x
