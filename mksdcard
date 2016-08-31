@@ -224,11 +224,13 @@ while IFS=, read part start end name size align type format file; do
     # grow last partition until end of disk
     # but do no overlap with backup GPT
     if [ "$size" = 0 ]; then end=$(($SIZE*2-34)); fi
-    sgdisk -a 1 -n $part:$start:$end $IMG
-    sgdisk -c $part:$name $IMG
+    CMD="-a 1 -n $part:$start:$end -c $part:$name"
+
     if [ -n "$type" ]; then
-        sgdisk -t $part:$type $IMG
+        CMD="$CMD -t $part:$type"
     fi
+
+    sgdisk $CMD $IMG
 
     # create partition only, do not write file
     if [ "$PARTONLY" = "1" ] ; then continue; fi
