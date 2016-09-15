@@ -38,11 +38,11 @@ real_size_in_kb() {
     # handle custom size
     case $size in
         *G|*g)
-            size=$((${size::-1}*1024*1024)) ;;
+            size=$((${size%?}*1024*1024)) ;;
         *M|*m)
-            size=$((${size::-1}*1024)) ;;
+            size=$((${size%?}*1024)) ;;
         *K|*k)
-            size=${size::-1} ;;
+            size=${size%?} ;;
     esac
     echo $size
 }
