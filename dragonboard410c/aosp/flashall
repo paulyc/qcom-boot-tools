@@ -1,0 +1,25 @@
+#!/bin/sh
+
+fastboot flash partition gpt_both0.bin
+fastboot flash hyp hyp.mbn
+fastboot flash modem NON-HLOS.bin
+fastboot flash rpm rpm.mbn
+fastboot flash sbl1 sbl1.mbn
+fastboot flash tz tz-psci.mbn
+fastboot flash aboot emmc_appsboot.mbn
+
+# Android (for some reasons) have bak partition with duplicate..
+fastboot flash sbl1bak sbl1.mbn
+fastboot flash hypbak hyp.mbn
+fastboot flash rpmbak rpm.mbn
+fastboot flash tzbak tz-psci.mbn
+fastboot flash abootbak emmc_appsboot.mbn
+
+fastboot erase boot
+fastboot erase recovery
+fastboot erase system
+fastboot erase userdata
+fastboot erase cache
+fastboot erase devinfo
+fastboot erase persist
+fastboot erase sec
