@@ -5,14 +5,15 @@ fastboot flash hyp hyp.mbn
 fastboot flash modem NON-HLOS.bin
 fastboot flash rpm rpm.mbn
 fastboot flash sbl1 sbl1.mbn
-fastboot flash tz tz-psci.mbn
+fastboot flash tz tz.mbn
 fastboot flash aboot emmc_appsboot.mbn
+fastboot flash cdt sbc_1.0_8016.bin
 
 # Android (for some reasons) have bak partition with duplicate..
 fastboot flash sbl1bak sbl1.mbn
 fastboot flash hypbak hyp.mbn
 fastboot flash rpmbak rpm.mbn
-fastboot flash tzbak tz-psci.mbn
+fastboot flash tzbak tz.mbn
 fastboot flash abootbak emmc_appsboot.mbn
 
 fastboot erase boot
