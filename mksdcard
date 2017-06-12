@@ -235,20 +235,24 @@ while IFS=, read part start end name size align type format file; do
     # create partition only, do not write file
     if [ "$PARTONLY" = "1" ] ; then continue; fi
 
-    # no file to write
-    if [ -z "$file" ] ; then continue; fi
-
     # push the blob
     DPATH=$(losetup --show -f $IMG -o $(($start * 512)) --sizelimit $(( ($end-$start+1) * 512)))
-    echo "=== Writing $file to $name: ${DPATH} ... "
-    case "$format" in
-        fastboot)
-            simg2img $file ${DPATH}
-            ;;
-        *)
-            dd if=$file of=${DPATH}
-            ;;
-    esac
+
+    # no file to write
+    if [ -z "$file" ] ; then
+        echo "=== Erasing $name: ${DPATH} ... "
+        dd if=/dev/zero of=${DPATH} count=$size bs=1024
+    else
+        echo "=== Writing $file to $name: ${DPATH} ... "
+        case "$format" in
+            fastboot)
+                simg2img $file ${DPATH}
+                ;;
+            *)
+                dd if=$file of=${DPATH}
+                ;;
+        esac
+    fi
     losetup -d ${DPATH}
 
 done < $gpt
