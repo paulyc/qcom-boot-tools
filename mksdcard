@@ -143,6 +143,14 @@ while IFS=, read name size align type format file; do
     full_path_file=
     if [ -z "$size" ] ; then continue; fi
     size=$(real_size_in_kb $size)
+
+    # if $file start with '-', don't fail if missing
+    optionalfile=0
+    if [ "${file#-}"x != "${file}x" ] ; then
+        optionalfile=1
+        file=${file#-}
+    fi
+
     echo "=== Entry: name: $name, size: $size, align: $align, type: $type, format: $format, file: $file"
 
     # align partition start
@@ -170,8 +178,13 @@ while IFS=, read name size align type format file; do
         done
 
         if [ -z "$full_path_file" ]; then
-            echo "Unable to find file $file in $INC"
-            exit 1
+            if [ "$optionalfile" = 0 ]; then
+                echo "Error: Unable to find file $file in $INC"
+                exit 1
+            else
+                echo "Warning: Unable to find file $file in $INC"
+                full_path_file=
+            fi
         fi
     fi
 
