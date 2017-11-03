@@ -9,7 +9,7 @@ fastboot flash partition:5 gpt_both5.bin
 
 fastboot erase ddr
 
-fastboot flash cdt sbc_1.0.bin
+fastboot flash cdt sbc_1.0_8096.bin
 fastboot flash xbl xbl.elf
 fastboot flash rpm rpm.mbn
 fastboot flash tz tz.mbn
