@@ -25,6 +25,7 @@ Utility to create SD card
  -p <file>  partition description file
  -i <path>  additional include paths to use when looking for files
  -s <size>  set output image size (in kb)
+ -b <size>  set sector size (LBA) in bytes
  -g         create partitions but do not write files
  -n         print partition scheme and exit, before creating image file
  -x         enable shell debug mode
@@ -67,7 +68,7 @@ PARTONLY=0
 DEBUG=0
 SECTOR_SIZE=512
 INC="."
-while getopts "o:p:i:s:dxng" o; do
+while getopts "o:p:i:s:b:dxng" o; do
     case "${o}" in
     x|d)
         set -x
@@ -90,6 +91,9 @@ while getopts "o:p:i:s:dxng" o; do
         ;;
     p)
         PARTITIONS=${OPTARG}
+        ;;
+    b)
+        SECTOR_SIZE=${OPTARG}
         ;;
     *)
         usage
