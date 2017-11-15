@@ -171,17 +171,20 @@ while IFS=, read name size align type format file; do
 
     # align partition start
     if [ -n "$align" ]; then
-        align=$(( $align * 2))
+        align=$(kb_to_sector $align)
         sector=$(( (($sector+$align-1) / $align) * $align ))
     fi
     start=$sector
-    sector=$(($sector + $size*2))
+    sector=$(($sector + $(kb_to_sector $size)))
 
     if [ -z "$name" ] ; then continue; fi
 
     # make sure we don't overlap with GPT primary header
-    if [ $start -lt 34 ]; then
-        start=34
+    # GPT primary header size is
+    # MBR + GPT HEADER + Partition entries = 2 SECTOR + 16KB
+    GPT_PRIMARY_HEADER=$(( 2 + $(kb_to_sector 16)))
+    if [ $start -lt $GPT_PRIMARY_HEADER ]; then
+        start=$GPT_PRIMARY_HEADER
         sector=$(($sector+$start))
     fi
 
@@ -214,7 +217,7 @@ done < $partitions
 
 echo "=== Last start sector after parsing partition table: $sector"
 
-SIZE=$(($sector/2 + $SIZE))
+SIZE=$(( $(sector_to_kb $sector) + $SIZE))
 if [ $SIZE -lt $SIZE_MIN ]; then
     SIZE=$SIZE_MIN
 fi
@@ -254,7 +257,10 @@ while IFS=, read part start end name size align type format file; do
     echo "=== Create part: name:$name, size:$size, type:$type, align:$align, format:$format, file:$file"
     # grow last partition until end of disk
     # but do no overlap with backup GPT
-    if [ "$size" = 0 ]; then end=$(($SIZE*2-34)); fi
+    # GPT backup size is
+    # GPT HEADER + Partition entries = 1x SECTOR + 16KB
+    GPT_BACKUP_HEADER=$(( 1 + $(kb_to_sector 16)))
+    if [ "$size" = 0 ]; then end=$(($(kb_to_sector $SIZE)-$GPT_BACKUP_HEADER-1)); fi
     CMD="-a 1 -n $part:$start:$end -c $part:$name"
 
     if [ -n "$type" ]; then
@@ -270,7 +276,7 @@ while IFS=, read part start end name size align type format file; do
     if [ -z "$file" ] ; then continue; fi
 
     # push the blob
-    DPATH=$(losetup --show -f $IMG -o $(($start * 512)) --sizelimit $(( ($end-$start+1) * 512)))
+    DPATH=$(losetup --show -f $IMG -o $(sector_to_bytes $start) --sizelimit $(sector_to_bytes $(($end-$start+1)) ))
     echo "=== Writing $file to $name: ${DPATH} ... "
     case "$format" in
         fastboot)
