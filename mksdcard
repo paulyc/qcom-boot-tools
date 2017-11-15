@@ -135,25 +135,25 @@ part=1
 
 # GPT Scheme:
 # --------------------------
-# | LBA 0    | MBR         |
+# | LBA 0     | MBR         |
 # --------------------------
-# | LBA 1    | GPT HEADER  |
+# | LBA 1     | GPT HEADER  |
 # --------------------------
-# | LBA 2    | PART. 1     |
-# | ....     |             |
-# | LBA 33   | PART. 32    |
+# | 128 bytes | PART. 1     |
+# | ....      |             |
+# | 128 bytes | PART. 128   |
 # --------------------------
-# | LBA 34   | DATA        |
-# | ....     |             |
-# | ....     |             |
-# | ....     |             |
-# | LBA -34  | LAST DATA   |
+# | ....      | DATA        |
+# | ....      |             |
+# | ....      |             |
+# | ....      |             |
+# | ....      | LAST DATA   |
 # --------------------------
-# | LBA -33  | PART. 1     |
-# | ....     |             |
-# | LBA -2   | PART. 32    |
+# | 128 bytes | PART. 1     |
+# | ....      |             |
+# | 128 bytes | PART. 128   |
 # --------------------------
-# | LBA -1   | GPT HEADER  |
+# | LBA -1    | GPT HEADER  |
 # --------------------------
 while IFS=, read name size align type format file; do
     full_path_file=
