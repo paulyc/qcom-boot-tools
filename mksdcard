@@ -47,9 +47,25 @@ real_size_in_kb() {
     echo $size
 }
 
+kb_to_sector() {
+    local size=$1
+    echo $(( ${size} * 1024 / SECTOR_SIZE ))
+}
+
+sector_to_kb() {
+    local size=$1
+    echo $(( ${size} * SECTOR_SIZE / 1024 ))
+}
+
+sector_to_bytes() {
+    local size=$1
+    echo $(( ${size} * SECTOR_SIZE ))
+}
+
 PRINTONLY=0
 PARTONLY=0
 DEBUG=0
+SECTOR_SIZE=512
 INC="."
 while getopts "o:p:i:s:dxng" o; do
     case "${o}" in
