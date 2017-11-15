@@ -196,6 +196,8 @@ while IFS=, read name size align type format file; do
 
 done < $partitions
 
+echo "=== Last start sector after parsing partition table: $sector"
+
 SIZE=$(($sector/2 + $SIZE))
 if [ $SIZE -lt $SIZE_MIN ]; then
     SIZE=$SIZE_MIN
