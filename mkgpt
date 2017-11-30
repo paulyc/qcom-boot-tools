@@ -8,6 +8,7 @@ Usage: `basename $0` [OPTIONS]
 Create partition file to be used to flash GPT on DragonBoard
 
  -d         enable debug traces
+ -a <dir>   output dir to create gpt_main.bin, gpt_backup.bin and gpt_both.bin
  -o <file>  output file (will be destroyed if exists)
  -i <file>  GPT backup file
  -x         enable shell debug mode
@@ -17,11 +18,14 @@ EOF
 }
 
 DEBUG=0
-while getopts "o:i:s:dx" o; do
+while getopts "a:o:i:s:dx" o; do
     case "${o}" in
     x|d)
         set -x
         DEBUG=1
+        ;;
+    a)
+        OUT_DIR=${OPTARG}
         ;;
     o)
         OUT=${OPTARG}
@@ -36,7 +40,7 @@ while getopts "o:i:s:dx" o; do
 done
 shift $((OPTIND-1))
 
-if [ -z "$OUT" ] || [ -z "$IN" ] ; then
+if [ -z "$OUT_DIR" ] && [ -z "$OUT" ] || [ -z "$IN" ] ; then
     echo "Please specify an output and input file"
     echo ""
     usage
@@ -56,11 +60,22 @@ dd if=$IN of=$MBR bs=512 count=1 > /dev/null 2>&1
 dd if=$IN of=$PRIMARY bs=512 count=1 skip=1 > /dev/null 2>&1
 dd if=$IN of=$SECONDARY bs=512 count=1 skip=2 > /dev/null 2>&1
 dd if=$IN of=$DATA bs=512 count=32 skip=3 > /dev/null 2>&1
-echo "=== Create $OUT file"
-cat $MBR $PRIMARY $DATA $DATA $SECONDARY > $OUT
+echo "=== Create file(s)"
+
+if [ -n "$OUT_DIR" ] ; then
+    cat $MBR $PRIMARY $DATA > $OUT_DIR/gpt_main.bin
+    cat $DATA $SECONDARY > $OUT_DIR/gpt_backup.bin
+    cat $OUT_DIR/gpt_main.bin $OUT_DIR/gpt_backup.bin > $OUT_DIR/gpt_both.bin
+else
+    cat $MBR $PRIMARY $DATA $DATA $SECONDARY > $OUT
+fi
 
 if [ "$DEBUG" = "1" ] ;then
-    ls -l $MBR $PRIMARY $DATA $DATA $SECONDARY $OUT
+    if [ -n "$OUT" ]; then
+        ls -l $MBR $PRIMARY $DATA $DATA $SECONDARY $OUT
+    else
+        ls -l $MBR $PRIMARY $DATA $DATA $SECONDARY $OUT_DIR/gpt_{main,backup,both}.bin
+    fi
 fi
 
 rm -f $MBR $PRIMARY $DATA $SECONDARY
