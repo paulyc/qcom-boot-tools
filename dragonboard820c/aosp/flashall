@@ -1,0 +1,22 @@
+#!/bin/sh
+
+fastboot flash partition:0 gpt_both0.bin
+fastboot flash partition:1 gpt_both1.bin
+fastboot flash partition:2 gpt_both2.bin
+fastboot flash partition:3 gpt_both3.bin
+fastboot flash partition:4 gpt_both4.bin
+fastboot flash partition:5 gpt_both5.bin
+
+fastboot erase ddr
+
+fastboot flash cdt sbc_1.0_8096.bin
+fastboot flash xbl xbl.elf
+fastboot flash rpm rpm.mbn
+fastboot flash tz tz.mbn
+fastboot flash hyp hyp.mbn
+fastboot flash pmic pmic.elf
+fastboot flash aboot emmc_appsboot.mbn
+fastboot flash devcfg devcfg.mbn
+fastboot flash cmnlib64 cmnlib64.mbn
+fastboot flash cmnlib cmnlib.mbn
+fastboot flash keymaster keymaster.mbn
