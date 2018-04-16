@@ -48,7 +48,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <partition label="devcfg" size_in_kb="128" type="F65D4B16-343D-4E25-AAFC-BE99B6556A6D" bootable="false" readonly="false" filename="devcfg.mbn"/>
         <partition label="devcfgbak" size_in_kb="128" type="F65D4B16-343D-4E25-AAFC-BE99B6556A6D" bootable="false" readonly="false" filename="devcfg.mbn"/>
         <partition label="frp" size_in_kb="512" type="91B72D4D-71E0-4CBF-9B8E-236381CFF17A" bootable="false" readonly="false" filename=""/>
-	<partition label="rootfs" size_in_kb="12582912" type="1B81E7E6-F50D-419B-A739-2AEEF8DA3335" bootable="false" readonly="false" filename="" sparse="true"/>
+        <partition label="rootfs" size_in_kb="12582912" type="1B81E7E6-F50D-419B-A739-2AEEF8DA3335" bootable="false" readonly="false" filename="" sparse="true"/>
     </physical_partition>
 
     <!-- This is LUN 1 - Boot LUN A" -->
@@ -84,7 +84,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <partition label="modem" size_in_kb="97280" type="EBD0A0A2-B9E5-4433-87C0-68B6B72699C7" bootable="false" readonly="true" filename="NON-HLOS.bin"/> 
         <partition label="dsp" size_in_kb="16384" type="7EFE5010-2A1A-4A1A-B8BC-990257813512" bootable="false" readonly="true" filename="adspso.bin"/> 
         <partition label="dip" size_in_kb="1024" type="4114B077-005D-4E12-AC8C-B493BDA684FB" bootable="false" readonly="true" filename=""/>
-	<partition label="mdtp" size_in_kb="32768" type="3878408A-E263-4B67-B878-6340B35B11E3" bootable="false" readonly="true" filename=""/>
+        <partition label="mdtp" size_in_kb="32768" type="3878408A-E263-4B67-B878-6340B35B11E3" bootable="false" readonly="true" filename=""/>
         <partition label="aboot" size_in_kb="1024" type="400FFDCD-22E0-47E7-9A23-F16ED9382388" bootable="false" readonly="true" filename="emmc_appsboot.mbn"/>
         <partition label="abootbak" size_in_kb="1024" type="400FFDCD-22E0-47E7-9A23-F16ED9382388" bootable="false" readonly="true" filename="emmc_appsboot.mbn"/>
         <partition label="boot" size_in_kb="65536" type="20117F86-E985-4357-B9EE-374BC1D8487D" bootable="false" readonly="true" filename="" />
