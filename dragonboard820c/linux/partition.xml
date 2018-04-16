@@ -42,12 +42,6 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
     <!-- This is LUN 0 - HLOS LUN" -->
     <physical_partition>
-        <partition label="ssd" size_in_kb="8" type="2C86E742-745E-4FDD-BFD8-B6A7AC638772" bootable="false" readonly="false" filename="" />
-        <partition label="misc" size_in_kb="1024" type="82ACC91F-357C-4A68-9C8F-689E1B1A23A1" bootable="false" readonly="false" filename="" />
-        <partition label="keystore" size_in_kb="512" type="DE7D4029-0F5B-41C8-AE7E-F6C023A02B33" bootable="false" readonly="false" filename="" />
-        <partition label="devcfg" size_in_kb="128" type="F65D4B16-343D-4E25-AAFC-BE99B6556A6D" bootable="false" readonly="false" filename="devcfg.mbn"/>
-        <partition label="devcfgbak" size_in_kb="128" type="F65D4B16-343D-4E25-AAFC-BE99B6556A6D" bootable="false" readonly="false" filename="devcfg.mbn"/>
-        <partition label="frp" size_in_kb="512" type="91B72D4D-71E0-4CBF-9B8E-236381CFF17A" bootable="false" readonly="false" filename=""/>
         <partition label="rootfs" size_in_kb="12582912" type="1B81E7E6-F50D-419B-A739-2AEEF8DA3335" bootable="false" readonly="false" filename="" sparse="true"/>
     </physical_partition>
 
@@ -64,8 +58,8 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <!-- This is LUN 3 - OTP LUN" -->
     <physical_partition>
         <partition label="reserve" size_in_kb="32" type="7A37A18E-48F0-BCA5-935E-5795DBB57FF8" bootable="false" readonly="true"/>
-        <partition label="cdt" size_in_kb="1" type="A19F205F-CCD8-4B6D-8F1E-2D9BC24CFFB1" bootable="false" readonly="true"/>
-        <partition label="ddr" size_in_kb="1024" type="20A0C19C-286A-42FA-9CE7-F64C3226A794" bootable="false" readonly="true"/>
+        <partition label="cdt" size_in_kb="1" type="A19F205F-CCD8-4B6D-8F1E-2D9BC24CFFB1" bootable="false" readonly="true" filename="sbc_1.0_8096.bin" />
+        <partition label="ddr" size_in_kb="1024" type="20A0C19C-286A-42FA-9CE7-F64C3226A794" bootable="false" readonly="true" filename="zeros_5sectors.bin" />
         <partition label="last_parti" size_in_kb="0" type="00000000-0000-0000-0000-000000000000" bootable="false" readonly="true" filename="" />
     </physical_partition>
 
@@ -109,6 +103,12 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
         <partition label="modemst1" size_in_kb="2048" type="EBBEADAF-22C9-E33B-8F5D-0E81686A68CB" bootable="false" readonly="false" filename=""/>
         <partition label="modemst2" size_in_kb="2048" type="0A288B1F-22C9-E33B-8F5D-0E81686A68CB" bootable="false" readonly="false" filename=""/>
         <partition label="fsc" size_in_kb="1" type="57B90A16-22C9-E33B-8F5D-0E81686A68CB" bootable="false" readonly="false" filename=""/>
+        <partition label="ssd" size_in_kb="8" type="2C86E742-745E-4FDD-BFD8-B6A7AC638772" bootable="false" readonly="false" filename="" />
+        <partition label="misc" size_in_kb="1024" type="82ACC91F-357C-4A68-9C8F-689E1B1A23A1" bootable="false" readonly="false" filename="" />
+        <partition label="keystore" size_in_kb="512" type="DE7D4029-0F5B-41C8-AE7E-F6C023A02B33" bootable="false" readonly="false" filename="" />
+        <partition label="devcfg" size_in_kb="128" type="F65D4B16-343D-4E25-AAFC-BE99B6556A6D" bootable="false" readonly="false" filename="devcfg.mbn"/>
+        <partition label="devcfgbak" size_in_kb="128" type="F65D4B16-343D-4E25-AAFC-BE99B6556A6D" bootable="false" readonly="false" filename="devcfg.mbn"/>
+        <partition label="frp" size_in_kb="512" type="91B72D4D-71E0-4CBF-9B8E-236381CFF17A" bootable="false" readonly="false" filename=""/>
         <partition label="last_parti" size_in_kb="0" type="00000000-0000-0000-0000-000000000000" bootable="false" readonly="false" filename="" />
     </physical_partition>
 </configuration>
